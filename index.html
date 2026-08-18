@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="DIVA learns a value function over partially denoised actions and uses it to assign credit to each step of the denoising chain when fine-tuning diffusion robot policies with reinforcement learning.">
+  <meta name="keywords" content="DIVA, diffusion policy, reinforcement learning, policy gradient, robot manipulation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DIVA: Diffusion Intermediate Value Advantage</title>
+
+  <!-- Nerfies' Google Analytics tag removed, as their own footer asks borrowers to do. -->
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<!-- Nerfies' nav bar removed: it linked to their homepage and their other papers. -->
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">DIVA: Diffusion Intermediate Value Advantage<br>for Diffusion Policy Optimization</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              Arjun Sohal<sup>1</sup>,</span>
+            <span class="author-block">
+              Yuchi Zhao<sup>1,2</sup>,</span>
+            <span class="author-block">
+              Miroslav Bogdanovic<sup>1,3</sup>,
+            </span>
+            <span class="author-block">
+              Al&aacute;n Aspuru-Guzik<sup>1,2,3,4</sup>
+            </span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup>University of Toronto,</span>
+            <span class="author-block"><sup>2</sup>Vector Institute,</span>
+            <span class="author-block"><sup>3</sup>Acceleration Consortium,</span>
+            <span class="author-block"><sup>4</sup>NVIDIA</span>
+          </div>
+
+          <!-- Affiliation logos. Uncomment once all four files exist in
+               static/images/logos/; see the README there. Publishing this with
+               files missing renders broken images. -->
+          <!--
+          <div class="affiliation-logos">
+            <img src="./static/images/logos/uoft.svg"   alt="University of Toronto">
+            <img src="./static/images/logos/vector.svg" alt="Vector Institute">
+            <img src="./static/images/logos/ac.svg"     alt="Acceleration Consortium">
+            <img src="./static/images/logos/nvidia.svg" alt="NVIDIA">
+          </div>
+          -->
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video autoplay muted loop playsinline style="width:100%;">
+        <source src="./static/videos/hero.mp4" type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        DIVA across six tasks.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Diffusion-based robot policies have become widely used in robotic manipulation, but
+            reinforcement-learning fine-tuning still assigns credit largely at the level of the
+            executed action or environment state. As a result, the denoising decisions that
+            construct an action chunk are optimized using a shared task-level signal, without
+            distinguishing which intermediate decisions contributed most to the final return.
+          </p>
+          <p>
+            We introduce <span class="dnerf">DIVA</span> (<i>Diffusion Intermediate Value
+            Advantage</i>), a policy-gradient method that learns a value function over partially
+            denoised actions and uses it to construct a denoising-level advantage for each step of
+            the generative process. DIVA combines this inner credit signal with the standard
+            environment-level PPO advantage, providing state-dependent credit throughout the
+            denoising chain.
+          </p>
+          <p>
+            Across Robomimic, FurnitureBench, Franka Kitchen, and D3IL, DIVA consistently improves
+            final performance over existing diffusion-policy fine-tuning methods. Beyond final
+            reward, DIVA reaches successful states more efficiently and can shift farther from the
+            pretrained behavior distribution, enabling it to discover more effective and efficient
+            task-level strategies and subtask sequences that baseline methods fail to reach.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Motivation</h2>
+        <div class="content has-text-justified">
+          <p>
+            Existing policy-gradient methods for fine-tuning generative diffusion policies
+            for robotics do not assign value to specific denoising steps of the generative
+            process. We show that this can be learned stably, and that it leads to
+            significant gains over existing methods.
+          </p>
+        </div>
+        <img src="./static/images/mdp.png"
+             alt="Two-level MDP formulation: an inner MDP that generates an action by
+                  iterative denoising, nested inside an outer MDP over environment states."
+             style="width:100%; max-width:1100px;">
+        <p class="has-text-centered is-size-7" style="margin-top:0.6rem; color:#5a6870;">
+          Two-level MDP formulation for fine-tuning a diffusion policy. At each outer
+          state <i>S<sub>t</sub></i> the inner MDP generates the action
+          <i>a<sub>t+1</sub></i> by iterative denoising, and the inner reward is zero
+          throughout. The resulting action drives the transition to
+          <i>S<sub>t+1</sub></i> and produces the outer reward <i>R<sub>t+1</sub></i>,
+          which is the only feedback the policy receives.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full"><h2 class="title is-3">Results</h2></div>
+    </div>
+
+    <div class="columns is-centered"><div class="column is-full">
+      <h3 class="title is-4">DIVA consistently improves downstream performance across tasks</h3>
+      <div class="content has-text-justified">
+        <p>
+          Across all four benchmarks DIVA attains the highest final return of the methods
+          compared.
+        </p>
+      </div>
+      <img src="./static/videos/curves.gif" style="width:100%;"
+           alt="Fine-tuning curves on Robomimic (top) and FurnitureBench (bottom),
+                mean over five seeds.">
+      <p class="has-text-centered is-size-7" style="color:#5a6870; margin-top:0.4rem;">
+        Robomimic return (top) and FurnitureBench success rate and return (bottom),
+        mean over five seeds.
+      </p>
+    </div></div>
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <video autoplay muted loop playsinline style="width:100%;">
+          <source src="./static/videos/lamp.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="color:#5a6870;">Long-horizon assembly, same part layout under both policies.</p>
+      </div>
+      <div class="column is-half">
+        <video autoplay muted loop playsinline style="width:100%;">
+          <source src="./static/videos/one_leg.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="color:#5a6870;">The gains hold on the shorter assembly task as well.</p>
+      </div>
+    </div>
+
+    <div class="columns is-centered" style="margin-top:2rem;"><div class="column is-full">
+      <h3 class="title is-4">DIVA reaches successful states more efficiently</h3>
+      <div class="content has-text-justified">
+        <p>
+          DIVA arrives at successful states in fewer environment steps.
+        </p>
+      </div>
+    </div></div>
+    <div class="columns is-centered">
+      <div class="column is-half">
+        <video autoplay muted loop playsinline style="width:100%;">
+          <source src="./static/videos/transport_pair.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="color:#5a6870;">The same scene under both policies, with each side counting environment steps and its running return.</p>
+      </div>
+      <div class="column is-half">
+        <video autoplay muted loop playsinline style="width:100%;">
+          <source src="./static/videos/avoid.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="color:#5a6870;">End-effector paths as they are executed: DIVA commits to a more rewarding route to the goal.</p>
+      </div>
+    </div>
+
+    <div class="columns is-centered" style="margin-top:2rem;"><div class="column is-full">
+      <h3 class="title is-4">DIVA learns task sequences that are weakly represented or absent in the demonstrations</h3>
+      <div class="content has-text-justified">
+        <p>
+          Where the full solution is rare in the demonstration data, DIVA reaches
+          successful sequences that the baselines do not.
+        </p>
+      </div>
+    </div></div>
+    <div class="columns is-centered">
+      <div class="column is-three-quarters">
+        <video autoplay muted loop playsinline style="width:100%;">
+          <source src="./static/videos/kitchen.mp4" type="video/mp4">
+        </video>
+        <p class="has-text-centered is-size-7" style="color:#5a6870;">Franka Kitchen, same reset: DIVA completes the full target sequence where DPPO stops short.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{sohal2026diva,
+  author    = {Arjun Sohal and Yuchi Zhao and Miroslav Bogdanovic and Al\'an Aspuru-Guzik},
+  title     = {DIVA: Diffusion Intermediate Value Advantage for Diffusion Policy Optimization},
+  year      = {2026},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+      <!-- TODO: point at our PDF and repo -->
+      <a class="icon-link" href="#">
+        <i class="fas fa-file-pdf"></i>
+      </a>
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p class="is-size-7">
+            Website template adapted from the
+            <a href="https://nerfies.github.io">Nerfies project page</a>, used under
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
